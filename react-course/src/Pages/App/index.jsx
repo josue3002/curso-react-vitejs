@@ -1,4 +1,3 @@
-
 import { useRoutes, BrowserRouter } from 'react-router-dom'
 import { ShoppingCartProvider } from '../../Context'
 import Home from '../Home'
