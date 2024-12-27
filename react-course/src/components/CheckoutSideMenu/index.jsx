@@ -22,7 +22,8 @@ const handleCheckout = () => {
         totalPrice: totalPrice(context.cartProducts)
     }
 
-    context.setOrder({...context.order, orderToAdd})
+    context.setOrder([...context.order, orderToAdd])
+    context.setCount(0)
     context.setCartProducts([])
 }
 
