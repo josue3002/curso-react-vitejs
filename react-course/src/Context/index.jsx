@@ -1,4 +1,4 @@
-import { createContext, useState } from 'react';
+import { createContext, useState, useEffect } from 'react';
 
 export const ShoppingCartContext = createContext()
 
@@ -25,6 +25,77 @@ export const ShoppingCartProvider = ({children}) => {
     // Shopping Cart . Order
     const [order, setOrder] = useState([])
 
+    // Get Products
+    const [items, setItems] = useState(null)
+    const [filteredItems, setFilteredItems] = useState(null)
+
+    // Get Products by title
+    const [searchByTitle, setSearchByTitle] = useState(null)
+
+    // Get Products by category
+    const [searchByCategory, setSearchByCategory] = useState(null)
+    
+    useEffect(() => {
+        (async function () {
+          try {
+            let res = null;
+            if (searchByCategory === null || searchByCategory === "/") {
+              res = await fetch("https://fakestoreapi.com/products");
+            } else {
+              res = await fetch(
+                `https://fakestoreapi.com/products/category/${searchByCategory}`
+              );
+            }
+    
+            if (!res) {
+              throw new Error("Algo falló");
+            }
+    
+            const data = await res.json();
+    
+            setItems(data);
+          } catch (error) {
+            console.error(error);
+          }
+        })();
+      }, [searchByCategory]);
+
+    const filteredItemsByTitle = (items, searchByTitle) => {
+        return items?.filter(item => item.title.toLowerCase().includes(searchByTitle.toLowerCase()))
+    }
+
+    const filteredItemsByCategory = (items, searchByCategory) => {
+        console.log('items: ', items);
+        return items?.filter(item => item.category.toLowerCase().includes(searchByCategory.toLowerCase()))
+    }
+
+    const filterBy = (searchType, items, searchByTitle, searchByCategory) => {
+        if (searchType === 'BY_TITLE') {
+            return filteredItemsByTitle(items, searchByTitle)
+        }
+
+        if (searchType === 'BY_CATEGORY') {
+            return filteredItemsByCategory(items, searchByCategory)
+        }
+
+        if (searchType === 'BY_TITLE_AND_CATEGORY') {
+            return filteredItemsByCategory(items, searchByCategory).filter(item => item.title.toLowerCase().includes(searchByTitle.toLowerCase()))
+        }
+
+        if (!searchType) {
+            return items
+        }
+    }
+
+    useEffect(() => {
+        if (searchByTitle && searchByCategory) setFilteredItems(filterBy('BY_TITLE_AND_CATEGORY', items, searchByTitle, searchByCategory))
+        if (searchByTitle && !searchByCategory) setFilteredItems(filterBy('BY_TITLE', items, searchByTitle, searchByCategory))
+        if (!searchByTitle && searchByCategory) setFilteredItems(filterBy('BY_CATEGORY', items, searchByTitle, searchByCategory))
+        if (!searchByTitle && !searchByCategory) setFilteredItems(filterBy(null, items, searchByTitle, searchByCategory))
+      }, [items, searchByTitle, searchByCategory])
+
+    console.log('filteredItems: ', filteredItems)
+    
     return (
         <ShoppingCartContext.Provider value= {{
             count,
@@ -41,6 +112,13 @@ export const ShoppingCartProvider = ({children}) => {
             closeCheckoutSideMenu,
             order,
             setOrder,
+            items,
+            setItems,
+            searchByTitle,
+            setSearchByTitle,
+            filteredItems,
+            searchByCategory,
+            setSearchByCategory,
         }}>
             {children}
         </ShoppingCartContext.Provider>
