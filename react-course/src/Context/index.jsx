@@ -36,36 +36,16 @@ export const ShoppingCartProvider = ({children}) => {
     const [searchByCategory, setSearchByCategory] = useState(null)
     
     useEffect(() => {
-        (async function () {
-          try {
-            let res = null;
-            if (searchByCategory === null || searchByCategory === "/") {
-              res = await fetch("https://fakestoreapi.com/products");
-            } else {
-              res = await fetch(
-                `https://fakestoreapi.com/products/category/${searchByCategory}`
-              );
-            }
-    
-            if (!res) {
-              throw new Error("Algo falló");
-            }
-    
-            const data = await res.json();
-    
-            setItems(data);
-          } catch (error) {
-            console.error(error);
-          }
-        })();
-      }, [searchByCategory]);
+      fetch('https://fakestoreapi.com/products')
+        .then(response => response.json())
+        .then(data => setItems(data))
+    }, [])
 
     const filteredItemsByTitle = (items, searchByTitle) => {
         return items?.filter(item => item.title.toLowerCase().includes(searchByTitle.toLowerCase()))
     }
 
     const filteredItemsByCategory = (items, searchByCategory) => {
-        console.log('items: ', items);
         return items?.filter(item => item.category.toLowerCase().includes(searchByCategory.toLowerCase()))
     }
 
@@ -93,8 +73,6 @@ export const ShoppingCartProvider = ({children}) => {
         if (!searchByTitle && searchByCategory) setFilteredItems(filterBy('BY_CATEGORY', items, searchByTitle, searchByCategory))
         if (!searchByTitle && !searchByCategory) setFilteredItems(filterBy(null, items, searchByTitle, searchByCategory))
       }, [items, searchByTitle, searchByCategory])
-
-    console.log('filteredItems: ', filteredItems)
     
     return (
         <ShoppingCartContext.Provider value= {{
